@@ -24,8 +24,7 @@ Image was taken using Grappelli
 
 1. `pip install django-mass-edit`
 2. In `settings.py`, add `massadmin` to `INSTALLED_APPS`
-3. In `settings.py`, uncomment/add `django.template.loaders.eggs.Loader` in `TEMPLATE_LOADERS` section
-4. Add `url(r'^admin/', include("massadmin.urls")),` to `urls.py`
+3. Add `path(r'admin/', include('massadmin.urls')),` to `urls.py` before `admin.site.urls` line 
 
 ## Optional
 You may exclude some fields like this:
@@ -50,6 +49,55 @@ See [Django Docs on the subject](https://docs.djangoproject.com/en/dev/ref/contr
 
         url(r'^admin/', include(massadmin.urls), kwargs={'admin_site': admin_site}),
         ```
+
+## Settings
+
+### Enable Mass Edit for specific models
+
+By default, all models registered in the admin will get `Mass Edit` action.
+
+If you wish to disable this, add this to settings file:
+
+``` python
+MASSEDIT = {
+    'ADD_ACTION_GLOBALLY': False,
+}
+``` 
+
+Then, to add the mass edit action to specific models, use the provided mixin:
+``` python
+from massedit.massedit import MassEditMixin
+
+class MyModelAdmin(MassEditMixin, admin.ModelAdmin):
+    ...
+``` 
+
+### Session-based URLs
+
+Django-mass-edit will keep IDs for selected objects in URL, e.g:
+```
+/admin/myapp/mymodel-masschange/1,2,3,4,5/
+```
+
+To avoid problems with too long URL when editing large number of objects, 
+the list of objects will be stored in session and the URL will look like this:
+```
+/admin/myapp/mymodel-masschange/session-c81e728d9d4c2f636f067f89cc14862c/
+```
+(same length regardless of the number of selected objects).
+
+The default threshold is 500 characters for the IDs in the URL, not counting 
+anything before or after the the IDs.
+
+This threshold can be changed in settings:
+
+``` python
+MASSEDIT = {
+    'SESSION_BASED_URL_THRESHOLD': 10,
+}
+``` 
+
+To always use the session-based URLs, simply put in value `0`.
 
 
 # Hacking and pull requests
